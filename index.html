@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luvyx App</title>
+    <style>
+        /* Minimalistický design */
+        body { font-family: 'Segoe UI', sans-serif; background: #000; color: white; margin: 0; padding-bottom: 70px; }
+        header { padding: 20px; text-align: center; border-bottom: 1px solid #222; position: sticky; top: 0; background: #000; z-index: 100; }
+        
+        .page { display: none; padding: 15px; }
+        .active { display: block; }
+
+        /* Vzhled videí */
+        .video-card { width: 100%; margin-bottom: 25px; border-radius: 12px; overflow: hidden; background: #111; }
+        iframe { width: 100%; aspect-ratio: 16/9; border: none; }
+        .video-info { padding: 10px; font-weight: bold; }
+
+        /* Spodní menu (jako Instagram/YouTube) */
+        nav { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; }
+        nav button { background: none; border: none; color: #888; font-size: 14px; cursor: pointer; transition: 0.3s; }
+        nav button.active-btn { color: white; font-weight: bold; }
+
+        /* Tlačítko nahrát */
+        .upload-btn { background: #ff0000; color: white; padding: 12px 25px; border-radius: 25px; border: none; font-weight: bold; margin-top: 20px; width: 100%; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #222; color: white; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <header id="main-title">Videos</header>
+
+    <div id="home" class="page active">
+        <div id="feed">
+            <div class="video-card">
+                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe>
+                <div class="video-info">Vítejte v Luvyx App!</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="channel" class="page">
+        <h2>Můj kanál</h2>
+        <p>Zatím jsi nenahrál žádná videa.</p>
+        
+        <hr style="border: 0.5px solid #222; margin: 20px 0;">
+        
+        <h3>Nahrát nové video</h3>
+        <input type="text" id="videoUrl" placeholder="Vlož YouTube URL (např. https://youtu.be/...)">
+        <input type="text" id="videoTitle" placeholder="Název videa">
+        <button class="upload-btn" onclick="uploadVideo()">PUBLIKOVAT</button>
+    </div>
+
+    <nav>
+        <button id="btn-home" class="active-btn" onclick="showPage('home')">HOME</button>
+        <button id="btn-channel" onclick="showPage('channel')">MY CHANNEL</button>
+    </nav>
+
+    <script>
+        function showPage(pageId) {
+            // Skryje všechny stránky
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            // Zobrazí vybranou stránku
+            document.getElementById(pageId).classList.add('active');
+            
+            // Upraví titulek v hlavičce
+            document.getElementById('main-title').innerText = pageId === 'home' ? 'Videos' : 'My Channel';
+            
+            // Upraví barvu tlačítek v menu
+            document.getElementById('btn-home').classList.toggle('active-btn', pageId === 'home');
+            document.getElementById('btn-channel').classList.toggle('active-btn', pageId === 'channel');
+        }
+
+        function uploadVideo() {
+            const url = document.getElementById('videoUrl').value;
+            const title = document.getElementById('videoTitle').value;
+            // Tady budeme později přidávat kód pro odeslání do Firebase
+            alert("Video '" + title + "' bylo odesláno! (Zatím jen testovací režim)");
+            showPage('home');
+        }
+    </script>
+</body>
+</html>
