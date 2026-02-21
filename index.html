@@ -3,148 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luvyx App</title>
+    <title>Luvyx Video</title>
     <style>
         /* Moderní tmavý minimalistický vzhled */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background: #000; 
-            color: white; 
-            margin: 0; 
-            padding-bottom: 80px; 
+            background: #000; color: white; margin: 0; padding-bottom: 80px; 
         }
         
         header { 
-            padding: 20px; 
-            text-align: center; 
-            font-size: 1.2rem; 
-            font-weight: 800; 
-            letter-spacing: 1px;
-            border-bottom: 1px solid #1a1a1a; 
-            background: #000; 
-            position: sticky; 
-            top: 0; 
-            z-index: 100;
+            padding: 20px; text-align: center; font-size: 1.4rem; font-weight: 900; 
+            letter-spacing: 1px; border-bottom: 1px solid #1a1a1a; background: #000; 
+            position: sticky; top: 0; z-index: 100; color: #ff0000;
         }
 
         .page { display: none; padding: 10px; animation: fadeIn 0.3s; }
         .active { display: block; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Styl videí */
+        .video-card { background: #000; margin-bottom: 30px; width: 100%; }
+        .video-wrapper { position: relative; width: 100%; padding-top: 56.25%; }
+        iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 8px; }
+        .v-title { padding: 12px 5px; font-size: 0.95rem; font-weight: 500; }
+
+        /* Seznam v My Channel */
+        .my-videos-list { margin-top: 30px; border-top: 1px solid #222; padding-top: 20px; }
+        .my-video-item { 
+            background: #111; padding: 12px; margin-bottom: 8px; 
+            border-radius: 10px; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;
         }
 
-        /* Styl videí jako na Instagramu/YouTube */
-        .video-card { 
-            background: #000; 
-            margin-bottom: 30px; 
-            width: 100%;
-        }
-        
-        .video-wrapper {
-            position: relative;
-            width: 100%;
-            padding-top: 56.25%; /* Poměr stran 16:9 */
-        }
-
-        iframe { 
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%; 
-            height: 100%; 
-            border: none; 
-        }
-
-        .v-title { 
-            padding: 12px 5px; 
-            font-size: 0.95rem; 
-            font-weight: 500;
-        }
-
-        /* Spodní navigace */
+        /* Navigace */
         nav { 
-            position: fixed; 
-            bottom: 0; 
-            width: 100%; 
-            background: rgba(0,0,0,0.95); 
-            display: flex; 
-            justify-content: space-around; 
-            padding: 15px 0; 
-            border-top: 1px solid #222; 
-            backdrop-filter: blur(10px);
+            position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.95); 
+            display: flex; justify-content: space-around; padding: 15px 0; 
+            border-top: 1px solid #222; backdrop-filter: blur(10px);
         }
 
         nav button { 
-            background: none; 
-            border: none; 
-            color: #555; 
-            font-size: 0.75rem; 
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer; 
-            transition: 0.2s;
+            background: none; border: none; color: #555; font-size: 0.75rem; 
+            font-weight: bold; text-transform: uppercase; cursor: pointer; 
         }
 
-        nav button.active-btn { 
-            color: #fff; 
-        }
+        nav button.active-btn { color: #fff; border-bottom: 2px solid #ff0000; }
 
-        /* Formulář nahrávání */
-        .upload-section {
-            background: #111;
-            padding: 20px;
-            border-radius: 15px;
-            margin-top: 20px;
-        }
-
+        /* Upload sekce */
+        .upload-section { background: #111; padding: 20px; border-radius: 15px; margin-top: 10px; }
         input { 
-            width: 100%; 
-            padding: 15px; 
-            margin: 10px 0; 
-            border-radius: 10px; 
-            border: 1px solid #333; 
-            background: #000; 
-            color: white; 
-            box-sizing: border-box; 
-            font-size: 1rem;
+            width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; 
+            border: 1px solid #333; background: #000; color: white; box-sizing: border-box; 
         }
 
         .btn-publish { 
-            background: #fff; 
-            color: #000; 
-            border: none; 
-            padding: 15px; 
-            width: 100%; 
-            border-radius: 10px; 
-            font-weight: 800; 
-            margin-top: 10px;
-            cursor: pointer;
+            background: #fff; color: #000; border: none; padding: 15px; 
+            width: 100%; border-radius: 10px; font-weight: 800; margin-top: 10px; cursor: pointer;
         }
 
-        h2 { font-size: 1.5rem; margin-bottom: 5px; }
-        p { color: #888; margin-bottom: 20px; }
+        .loading { text-align: center; padding: 50px; color: #555; }
     </style>
 </head>
 <body>
 
-<header id="app-bar">VIDEOS</header>
+<header id="app-bar">LUVYX VIDEO</header>
 
 <div id="home" class="page active">
     <div id="videoContainer">
-        </div>
+        <div class="loading">Načítám videa z databáze...</div>
+    </div>
 </div>
 
 <div id="mychannel" class="page">
     <h2>My Channel</h2>
-    <p>Správa tvého obsahu</p>
-    
     <div class="upload-section">
-        <label>Nahrát nové video</label>
+        <label style="font-size: 0.8rem; color: #888;">Sdílej nové video</label>
         <input type="text" id="vidName" placeholder="Název videa...">
         <input type="text" id="vidUrl" placeholder="YouTube URL (např. https://youtu.be/...)">
         <button class="btn-publish" onclick="handleUpload()">PUBLIKOVAT</button>
+    </div>
+
+    <div class="my-videos-list">
+        <h3>Moje nahraná videa:</h3>
+        <div id="myVideosListContainer">
+            </div>
     </div>
 </div>
 
@@ -155,9 +97,12 @@
 
 <script>
     // --- KONFIGURACE ---
-    const API_KEY = "AIzaSyC4i78yaF9CTbhjDDXzTww-z0htsDddFdw"; // Tvůj API klíč z Google Console
-    
-    // --- FUNKCE PRO ZOBRAZENÍ ---
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwds11bGYMa6wZMYwOv7Q477rbdT7JfeF3RkSbMhP7Bb9Tg8KcGILen-ehTpBOTXrBB/exec";
+
+    // Globální úložiště pro videa načtená z tabulky
+    let allVideos = [];
+
+    // --- NAVIGACE ---
     function navigateTo(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
@@ -165,65 +110,100 @@
         document.getElementById('nav-home').classList.toggle('active-btn', pageId === 'home');
         document.getElementById('nav-channel').classList.toggle('active-btn', pageId === 'mychannel');
         
-        document.getElementById('app-bar').innerText = pageId === 'home' ? 'VIDEOS' : 'MY CHANNEL';
+        document.getElementById('app-bar').innerText = pageId === 'home' ? 'LUVYX VIDEO' : 'MY CHANNEL';
         
-        if(pageId === 'home') renderVideos();
+        if (pageId === 'home') fetchVideos();
+        if (pageId === 'mychannel') renderMyList();
     }
 
-    // --- LOGIKA VIDEÍ ---
+    // --- NAČÍTÁNÍ Z GOOGLE TABULKY ---
+    async function fetchVideos() {
+        const container = document.getElementById('videoContainer');
+        
+        try {
+            const response = await fetch(SCRIPT_URL);
+            allVideos = await response.json();
+            
+            if (allVideos.length === 0) {
+                container.innerHTML = '<div class="loading">Zatím tu nejsou žádná videa. Buď první!</div>';
+                return;
+            }
+
+            // Zobrazení videí (v opačném pořadí - nejnovější nahoře)
+            container.innerHTML = allVideos.slice().reverse().map(v => {
+                const id = extractYouTubeId(v[1]);
+                return id ? `
+                    <div class="video-card">
+                        <div class="video-wrapper">
+                            <iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>
+                        </div>
+                        <div class="v-title">${v[0]}</div>
+                    </div>
+                ` : '';
+            }).join('');
+
+        } catch (e) {
+            container.innerHTML = '<div class="loading">Chyba při připojení k databázi.</div>';
+        }
+    }
+
+    // --- SEZNAM MOJICH VIDEÍ V MY CHANNEL ---
+    function renderMyList() {
+        const container = document.getElementById('myVideosListContainer');
+        // Zobrazíme videa z aktuálně načtených dat (zjednodušeně)
+        if (allVideos.length === 0) {
+            container.innerHTML = '<p style="color:#444;">Žádná data nejsou k dispozici.</p>';
+            return;
+        }
+        container.innerHTML = allVideos.slice().reverse().map(v => `
+            <div class="my-video-item">
+                <span>${v[0]}</span>
+                <span style="color:#ff0000; font-size:0.7rem;">● ONLINE</span>
+            </div>
+        `).join('');
+    }
+
+    // --- ODESÍLÁNÍ DO GOOGLE TABULKY ---
+    async function handleUpload() {
+        const title = document.getElementById('vidName').value;
+        const url = document.getElementById('vidUrl').value;
+        const btn = document.querySelector('.btn-publish');
+        
+        if (!title || !url || !extractYouTubeId(url)) {
+            alert("Zadej platný název a YouTube odkaz!");
+            return;
+        }
+
+        btn.innerText = "PUBLIKUJI...";
+        btn.disabled = true;
+
+        try {
+            await fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ title: title, url: url })
+            });
+            
+            alert("Video úspěšně uloženo do databáze!");
+            document.getElementById('vidName').value = '';
+            document.getElementById('vidUrl').value = '';
+            navigateTo('home');
+        } catch (e) {
+            alert("Chyba při ukládání. Zkus to znovu.");
+        } finally {
+            btn.innerText = "PUBLIKOVAT";
+            btn.disabled = false;
+        }
+    }
+
+    // Pomocná funkce pro ID videa
     function extractYouTubeId(url) {
         const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
         const match = url.match(regex);
         return match ? match[1] : null;
     }
 
-    function renderVideos() {
-        const container = document.getElementById('videoContainer');
-        const videos = JSON.parse(localStorage.getItem('luvyx_videos')) || [];
-        
-        if (videos.length === 0) {
-            container.innerHTML = '<p style="text-align:center; margin-top:50px;">Zatím tu nejsou žádná videa.</p>';
-            return;
-        }
-
-        container.innerHTML = videos.map(v => `
-            <div class="video-card">
-                <div class="video-wrapper">
-                    <iframe src="https://www.youtube.com/embed/${extractYouTubeId(v.url)}" allowfullscreen></iframe>
-                </div>
-                <div class="v-title">${v.title}</div>
-            </div>
-        `).join('');
-    }
-
-    function handleUpload() {
-        const title = document.getElementById('vidName').value;
-        const url = document.getElementById('vidUrl').value;
-        
-        if (!title || !url) {
-            alert("Prosím vyplň název i odkaz.");
-            return;
-        }
-
-        if (!extractYouTubeId(url)) {
-            alert("Tohle nevypadá jako platný YouTube odkaz.");
-            return;
-        }
-
-        const videos = JSON.parse(localStorage.getItem('luvyx_videos')) || [];
-        videos.unshift({ title, url });
-        localStorage.setItem('luvyx_videos', JSON.stringify(videos));
-
-        // Reset políček
-        document.getElementById('vidName').value = '';
-        document.getElementById('vidUrl').value = '';
-        
-        alert("Video bylo přidáno!");
-        navigateTo('home');
-    }
-
-    // Načíst videa při startu
-    renderVideos();
+    // Prvotní načtení
+    fetchVideos();
 </script>
 
 </body>
