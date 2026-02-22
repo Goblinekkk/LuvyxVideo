@@ -5,51 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Luvyx Video Pro</title>
     <style>
-        :root { --primary: #ff4500; --bg: #000; --card: #111; }
+        :root { --primary: #ff4500; --bg: #000; --card: #111; --verified: #00bfff; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 80px; overflow-x: hidden; }
         
         /* HEADER & SEARCH */
         header { padding: 15px; background: var(--bg); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #222; }
         .logo { text-align: center; font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-bottom: 10px; letter-spacing: 2px; }
-        #searchBar { width: 100%; padding: 10px 15px; border-radius: 20px; border: none; background: #222; color: white; box-sizing: border-box; outline: none; }
+        #searchBar { width: 100%; padding: 10px 15px; border-radius: 20px; border: none; background: #222; color: white; box-sizing: border-box; outline: none; font-size: 0.9rem; }
 
         .page { display: none; padding: 10px; }
-        .active { display: block; }
+        .active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         /* SECTIONS */
-        .section-title { font-size: 1.1rem; margin: 20px 0 10px 5px; color: var(--primary); font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .section-title { font-size: 1.1rem; margin: 20px 0 10px 5px; color: var(--primary); font-weight: bold; text-transform: uppercase; }
         .horizontal-scroll { display: flex; overflow-x: auto; gap: 15px; padding-bottom: 10px; scrollbar-width: none; }
+        .horizontal-scroll::-webkit-scrollbar { display: none; }
         
         /* CARDS */
-        .thumb-card { min-width: 150px; border-radius: 12px; overflow: hidden; background: var(--card); transition: transform 0.2s; position: relative; }
-        .thumb-card:active { transform: scale(0.95); }
+        .thumb-card { min-width: 150px; border-radius: 12px; overflow: hidden; background: var(--card); position: relative; transition: 0.2s; }
+        .thumb-card:active { transform: scale(0.96); }
         .thumb-card img { width: 100%; height: 85px; object-fit: cover; }
         .short-thumb { min-width: 110px; }
         .short-thumb img { height: 180px; }
         .thumb-info { padding: 8px; font-size: 0.8rem; }
         .v-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
-
-        /* VERIFIED CHECKMARK */
-        .verified-badge { color: #00bfff; font-size: 0.8rem; margin-left: 4px; }
-
-        /* AVATAR SYSTEM */
-        .avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; color: white; }
-
-        /* LOADING SKELETON */
-        .skeleton { background: #222; animation: pulse 1.5s infinite; border-radius: 10px; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 0.8; } 100% { opacity: 0.5; } }
+        .v-author { color: #888; font-size: 0.7rem; margin-top: 3px; }
 
         /* PLAYER OVERLAY */
         #videoPlayerOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; display: none; flex-direction: column; }
-        .close-player { padding: 20px; text-align: right; font-size: 1.5rem; color: var(--primary); cursor: pointer; }
+        .close-player { padding: 20px; text-align: right; font-size: 1.5rem; color: var(--primary); cursor: pointer; font-weight: bold; }
         .player-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
 
-        nav { position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #222; backdrop-filter: blur(10px); }
-        nav button { background: none; border: none; color: #555; font-size: 0.7rem; font-weight: bold; transition: 0.3s; }
+        /* NAVIGATION */
+        nav { position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #222; backdrop-filter: blur(10px); z-index: 100; }
+        nav button { background: none; border: none; color: #555; font-size: 0.7rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
         nav button.active-btn { color: white; }
-        nav button.active-btn .dot { width: 5px; height: 5px; background: var(--primary); border-radius: 50%; margin: 5px auto 0; }
+        nav button.active-btn::after { content: ''; display: block; width: 5px; height: 5px; background: var(--primary); border-radius: 50%; margin: 5px auto 0; }
 
-        .btn-publish { background: linear-gradient(45deg, #ff4500, #ff8c00); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 10px; }
+        /* LIST ITEMS (ALL VIDEOS) */
+        .list-item { display: flex; gap: 12px; margin-bottom: 15px; background: var(--card); padding: 10px; border-radius: 12px; align-items: center; position: relative; }
+        .list-item img { width: 110px; height: 65px; border-radius: 8px; object-fit: cover; }
+        .list-info { flex-grow: 1; overflow: hidden; }
+        
+        /* BADGES & ADMIN */
+        .verified-badge { color: var(--verified); font-size: 0.8rem; margin-left: 3px; }
+        .delete-btn { color: #ff3333; font-size: 1.3rem; padding: 5px 10px; cursor: pointer; }
+
+        /* UPLOAD SECTION */
+        .upload-card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #222; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; }
+        .btn-publish { background: linear-gradient(45deg, #ff4500, #ff8c00); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -60,20 +66,12 @@
 </header>
 
 <div id="videoPlayerOverlay">
-    <div class="close-player" onclick="closePlayer()">✕</div>
+    <div class="close-player" onclick="closePlayer()">✕ ZAVŘÍT</div>
     <div id="playerTarget" class="player-container"></div>
 </div>
 
 <div id="home" class="page active">
-    <div id="loadingUI">
-        <div class="section-title">NAČÍTÁM...</div>
-        <div class="horizontal-scroll">
-            <div class="thumb-card skeleton" style="height:120px; width:150px;"></div>
-            <div class="thumb-card skeleton" style="height:120px; width:150px;"></div>
-        </div>
-    </div>
-    
-    <div id="contentUI" style="display:none;">
+    <div id="contentUI">
         <div class="section-title">🔥 TRENDY VIDEA</div>
         <div id="topVideos" class="horizontal-scroll"></div>
 
@@ -90,77 +88,116 @@
 </div>
 
 <nav>
-    <button onclick="navigateTo('home')" id="btn-home" class="active-btn">HOME<div class="dot"></div></button>
-    <button onclick="navigateTo('mychannel')" id="btn-channel">CHANNEL<div class="dot"></div></button>
+    <button onclick="navigateTo('home')" id="btn-home" class="active-btn">HOME</button>
+    <button onclick="navigateTo('mychannel')" id="btn-channel">CHANNEL</button>
 </nav>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz80OB0K3i8yTfEP1GMkX8ux_5qNHKq0JZz9NJEcdfQa4BV-LhYwlm06vRECpwQSfcf/exec";
+    // KONFIGURACE
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqHXenN38GxR5BzGADtzYcf9F3dHf6Z35-v9cNnFFMhT6WXie6qIyqSjqifrtqmo9r/exec";
+    const VERIFIED_USERS = ["GOBLINEKKK", "ADMIN", "MATY"]; // Seznam adminů s fajfkou a možností mazat
     let allData = [];
-    const VERIFIED_USERS = ["GOBLINEKKK", "ADMIN", "MATY"]; // Tady přidej jména s fajfkou
 
+    // NAVIGACE MEZI STRÁNKAMI
     function navigateTo(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-btn'));
         document.getElementById(pageId).classList.add('active');
-        document.getElementById('btn-' + (pageId==='home'?'home':'channel')).classList.add('active-btn');
-        if(pageId === 'home') fetchVideos();
-        if(pageId === 'mychannel') checkAuth();
+        document.getElementById('btn-' + (pageId === 'home' ? 'home' : 'channel')).classList.add('active-btn');
+        if (pageId === 'home') fetchVideos();
+        if (pageId === 'mychannel') checkAuth();
     }
 
+    // NAČTENÍ DAT Z TABULKY
     async function fetchVideos() {
         try {
             const response = await fetch(SCRIPT_URL);
             allData = await response.json();
             renderContent(allData.slice().reverse());
-            document.getElementById('loadingUI').style.display = 'none';
-            document.getElementById('contentUI').style.display = 'block';
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Chyba při načítání:", e); }
     }
 
+    // VYKRESLENÍ OBSAHU
     function renderContent(data) {
-        const topV = data.filter(v => !v[1].includes('/shorts/')).slice(0, 5);
-        const topS = data.filter(v => v[1].includes('/shorts/')).slice(0, 5);
+        const currentUser = localStorage.getItem('luvyx_user');
+        const isAdmin = VERIFIED_USERS.includes(currentUser);
 
-        document.getElementById('topVideos').innerHTML = topV.map(v => createCard(v, false)).join('');
-        document.getElementById('topShorts').innerHTML = topS.map(v => createCard(v, true)).join('');
+        // Filtrujeme pouze videa, která nejsou smazaná (Sloupec D / index 3)
+        const activeVideos = data.filter(v => v[3] !== "DELETED");
+
+        const longVideos = activeVideos.filter(v => !v[1].includes('/shorts/')).slice(0, 5);
+        const shortsVideos = activeVideos.filter(v => v[1].includes('/shorts/')).slice(0, 5);
+
+        // Trendy (Horizontální)
+        document.getElementById('topVideos').innerHTML = longVideos.map(v => createCard(v, false)).join('');
+        document.getElementById('topShorts').innerHTML = shortsVideos.map(v => createCard(v, true)).join('');
         
-        document.getElementById('allVideos').innerHTML = data.map(v => `
-            <div style="display:flex; gap:12px; margin-bottom:15px; background:#111; padding:10px; border-radius:10px;" onclick="openPlayer('${v[1]}')">
-                <img src="https://img.youtube.com/vi/${extractID(v[1])}/mqdefault.jpg" style="width:120px; border-radius:5px;">
-                <div style="overflow:hidden;">
-                    <div style="font-weight:bold; font-size:0.9rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${v[0]}</div>
-                    <div style="font-size:0.75rem; color:var(--primary); margin-top:5px;">
-                        @${(v[2]||'Neznámý').toUpperCase()} ${VERIFIED_USERS.includes(v[2]) ? ' <span class="verified-badge">✔</span>' : ''}
+        // Seznam (Vertikální)
+        document.getElementById('allVideos').innerHTML = activeVideos.map(v => {
+            const id = extractID(v[1]);
+            const author = (v[2] || 'Neznámý');
+            const isVerified = VERIFIED_USERS.includes(author);
+
+            return `
+                <div class="list-item">
+                    <img src="https://img.youtube.com/vi/${id}/mqdefault.jpg" onclick="openPlayer('${v[1]}')">
+                    <div class="list-info" onclick="openPlayer('${v[1]}')">
+                        <div style="font-weight:bold; font-size:0.95rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${v[0]}</div>
+                        <div style="font-size:0.75rem; color:#888; margin-top:4px;">
+                            @${author.toUpperCase()} ${isVerified ? '<span class="verified-badge">✔</span>' : ''}
+                        </div>
                     </div>
+                    ${isAdmin ? `<div class="delete-btn" onclick="deleteVideo('${v[1]}')">🗑️</div>` : ''}
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
+    // POMOCNÁ FUNKCE PRO KARTY
     function createCard(v, isShort) {
         const id = extractID(v[1]);
-        const user = (v[2] || 'Neznámý').toUpperCase();
         return `
             <div class="thumb-card ${isShort ? 'short-thumb' : ''}" onclick="openPlayer('${v[1]}')">
                 <img src="https://img.youtube.com/vi/${id}/mqdefault.jpg">
                 <div class="thumb-info">
                     <div class="v-title">${v[0]}</div>
-                    <div style="color:var(--primary); font-size:0.7rem;">@${user} ${VERIFIED_USERS.includes(v[2]) ? '✔' : ''}</div>
+                    <div class="v-author">@${(v[2] || '???').toUpperCase()}</div>
                 </div>
             </div>`;
     }
 
+    // VYHLEDÁVÁNÍ
     function filterVideos() {
         const query = document.getElementById('searchBar').value.toLowerCase();
-        const filtered = allData.filter(v => v[0].toLowerCase().includes(query) || (v[2] && v[2].toLowerCase().includes(query)));
+        const filtered = allData.filter(v => 
+            v[3] !== "DELETED" && 
+            (v[0].toLowerCase().includes(query) || (v[2] && v[2].toLowerCase().includes(query)))
+        );
         renderContent(filtered.slice().reverse());
     }
 
+    // MAZÁNÍ VIDEA (ADMIN POUZE)
+    async function deleteVideo(url) {
+        if (!confirm("Opravdu chceš smazat toto video z Luvyxu?")) return;
+        try {
+            await fetch(SCRIPT_URL, { 
+                method: "POST", 
+                body: JSON.stringify({ action: "delete", url: url }) 
+            });
+            alert("Smazáno!");
+            fetchVideos();
+        } catch (e) { alert("Chyba při mazání."); }
+    }
+
+    // OTEVŘENÍ PŘEHRÁVAČE
     function openPlayer(url) {
         const id = extractID(url);
         const isShort = url.includes('/shorts/');
-        document.getElementById('playerTarget').innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" style="width:100%; height:${isShort?'80vh':'30vh'}; border:none;" allow="autoplay" allowfullscreen></iframe>`;
+        const target = document.getElementById('playerTarget');
+        
+        target.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" 
+                            style="width:100%; height:${isShort ? '80vh' : '35vh'}; border:none;" 
+                            allow="autoplay; fullscreen"></iframe>`;
         document.getElementById('videoPlayerOverlay').style.display = 'flex';
     }
 
@@ -169,55 +206,84 @@
         document.getElementById('playerTarget').innerHTML = '';
     }
 
+    // SPRÁVA KANÁLU (AUTH)
     function checkAuth() {
         const container = document.getElementById('auth-container');
         const user = localStorage.getItem('luvyx_user');
+        
         if (!user) {
             container.innerHTML = `
-                <div style="text-align:center; padding:40px 10px;">
-                    <div style="font-size:4rem; margin-bottom:20px;">🎭</div>
-                    <h2>Tvůj nový kanál</h2>
-                    <input type="text" id="nickInput" placeholder="Zadej svůj Nickname...">
-                    <button class="btn-publish" onclick="saveUser()">VYTVOŘIT PROFIL</button>
+                <div style="text-align:center; padding:50px 10px;">
+                    <div style="font-size:4rem; margin-bottom:10px;">🚀</div>
+                    <h2>Vytvoř si profil</h2>
+                    <p style="color:#666;">Zadej jméno, pod kterým tě uvidí ostatní.</p>
+                    <input type="text" id="nickInput" placeholder="Tvé jméno...">
+                    <button class="btn-publish" onclick="saveUser()">ZAČÍT POUŽÍVAT</button>
                 </div>`;
         } else {
+            const isVerified = VERIFIED_USERS.includes(user);
             container.innerHTML = `
-                <div style="background:#111; padding:20px; border-radius:15px; border:1px solid #222;">
+                <div class="upload-card">
                     <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
-                        <div class="avatar" style="background:var(--primary)">${user[0].toUpperCase()}</div>
-                        <div style="font-weight:bold;">@${user} ${VERIFIED_USERS.includes(user) ? '✔' : ''}</div>
+                        <div style="width:40px; height:40px; background:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">${user[0].toUpperCase()}</div>
+                        <div>
+                            <div style="font-weight:bold;">@${user} ${isVerified ? '<span class="verified-badge">✔</span>' : ''}</div>
+                            <div style="font-size:0.7rem; color:#666;">Můj Luvyx Kanál</div>
+                        </div>
                     </div>
                     <input type="text" id="vTitle" placeholder="Název videa...">
-                    <input type="text" id="vUrl" placeholder="YouTube URL (nebo Shorts)...">
-                    <button class="btn-publish" onclick="upload()">PUBLIKOVAT VIDEO</button>
-                    <p onclick="localStorage.clear(); location.reload();" style="text-align:center; color:#444; font-size:0.7rem; margin-top:20px;">ODHLÁSIT SE</p>
+                    <input type="text" id="vUrl" placeholder="YouTube URL (např. https://...)">
+                    <button class="btn-publish" id="pubBtn" onclick="upload()">PUBLIKOVAT</button>
+                    <p onclick="logout()" style="text-align:center; color:#444; font-size:0.75rem; margin-top:25px; cursor:pointer;">ODHLÁSIT SE</p>
                 </div>`;
         }
     }
 
     function saveUser() {
         const nick = document.getElementById('nickInput').value.trim();
-        if (nick.length < 2) return;
+        if (nick.length < 2) return alert("Jméno je moc krátké!");
         localStorage.setItem('luvyx_user', nick);
         checkAuth();
     }
 
-    async function upload() {
-        const title = document.getElementById('vTitle').value;
-        const url = document.getElementById('vUrl').value;
-        const author = localStorage.getItem('luvyx_user');
-        if(!title || !url) return alert("Vyplň vše!");
-        document.querySelector('.btn-publish').innerText = "POSÍLÁM...";
-        await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ title, url, author }) });
-        navigateTo('home');
+    function logout() {
+        localStorage.removeItem('luvyx_user');
+        location.reload();
     }
 
+    async function upload() {
+        const title = document.getElementById('vTitle').value.trim();
+        const url = document.getElementById('vUrl').value.trim();
+        const author = localStorage.getItem('luvyx_user');
+        
+        if (!title || !url) return alert("Vyplň název i odkaz!");
+        
+        const btn = document.getElementById('pubBtn');
+        btn.innerText = "NAHRÁVÁM...";
+        btn.disabled = true;
+
+        try {
+            await fetch(SCRIPT_URL, { 
+                method: "POST", 
+                body: JSON.stringify({ title, url, author }) 
+            });
+            navigateTo('home');
+        } catch (e) { 
+            alert("Chyba spojení."); 
+            btn.innerText = "PUBLIKOVAT";
+            btn.disabled = false;
+        }
+    }
+
+    // EXTRAKCE ID Z YOUTUBE URL
     function extractID(url) {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+        if (!url) return "";
+        const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
         const match = url.match(regExp);
         return (match && match[2].length == 11) ? match[2] : null;
     }
 
+    // PRVNÍ NAČTENÍ
     fetchVideos();
 </script>
 </body>
