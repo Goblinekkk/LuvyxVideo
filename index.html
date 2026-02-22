@@ -3,67 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luvyx Video</title>
+    <title>Luvyx Video Pro</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #000; color: white; margin: 0; padding-bottom: 80px; }
-        header { padding: 20px; text-align: center; font-size: 1.4rem; font-weight: 900; background: #000; position: sticky; top: 0; z-index: 100; color: #ff4500; border-bottom: 1px solid #1a1a1a; }
+        :root { --primary: #ff4500; --bg: #000; --card: #111; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 80px; overflow-x: hidden; }
         
+        /* HEADER & SEARCH */
+        header { padding: 15px; background: var(--bg); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #222; }
+        .logo { text-align: center; font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-bottom: 10px; letter-spacing: 2px; }
+        #searchBar { width: 100%; padding: 10px 15px; border-radius: 20px; border: none; background: #222; color: white; box-sizing: border-box; outline: none; }
+
         .page { display: none; padding: 10px; }
         .active { display: block; }
 
-        /* SEKCE PRO TOP VÝBĚR */
-        .section-title { font-size: 1.2rem; margin: 20px 0 10px 5px; color: #ff4500; font-weight: bold; }
+        /* SECTIONS */
+        .section-title { font-size: 1.1rem; margin: 20px 0 10px 5px; color: var(--primary); font-weight: bold; display: flex; align-items: center; gap: 8px; }
         .horizontal-scroll { display: flex; overflow-x: auto; gap: 15px; padding-bottom: 10px; scrollbar-width: none; }
-        .horizontal-scroll::-webkit-scrollbar { display: none; }
         
-        .thumb-card { min-width: 160px; position: relative; cursor: pointer; border-radius: 10px; overflow: hidden; background: #111; }
-        .thumb-card img { width: 100%; height: 90px; object-fit: cover; opacity: 0.8; }
+        /* CARDS */
+        .thumb-card { min-width: 150px; border-radius: 12px; overflow: hidden; background: var(--card); transition: transform 0.2s; position: relative; }
+        .thumb-card:active { transform: scale(0.95); }
+        .thumb-card img { width: 100%; height: 85px; object-fit: cover; }
         .short-thumb { min-width: 110px; }
         .short-thumb img { height: 180px; }
-        .thumb-title { padding: 5px; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .thumb-info { padding: 8px; font-size: 0.8rem; }
+        .v-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
 
-        /* SEZNAM VŠECH VIDEÍ POD TÍM */
-        .video-list-full { margin-top: 30px; border-top: 1px solid #222; padding-top: 20px; }
-        .list-item { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
-        .list-item img { width: 100px; height: 60px; border-radius: 8px; object-fit: cover; }
-        
-        /* PŘEHRÁVAČ PŘES CELOU OBRAZOVKU */
-        #videoPlayerOverlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #000; z-index: 1000; display: none; flex-direction: column;
-        }
-        .close-player { padding: 20px; text-align: right; font-size: 1.5rem; font-weight: bold; color: #ff4500; cursor: pointer; }
+        /* VERIFIED CHECKMARK */
+        .verified-badge { color: #00bfff; font-size: 0.8rem; margin-left: 4px; }
+
+        /* AVATAR SYSTEM */
+        .avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; color: white; }
+
+        /* LOADING SKELETON */
+        .skeleton { background: #222; animation: pulse 1.5s infinite; border-radius: 10px; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 0.8; } 100% { opacity: 0.5; } }
+
+        /* PLAYER OVERLAY */
+        #videoPlayerOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; display: none; flex-direction: column; }
+        .close-player { padding: 20px; text-align: right; font-size: 1.5rem; color: var(--primary); cursor: pointer; }
         .player-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-        .player-iframe { width: 100%; aspect-ratio: 16/9; border: none; }
-        .player-iframe.is-shorts { aspect-ratio: 9/16; height: 80vh; width: auto; }
 
-        nav { position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.95); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #222; z-index: 100; }
-        nav button { background: none; border: none; color: #555; font-size: 0.75rem; font-weight: bold; }
-        nav button.active-btn { color: #fff; }
-        
-        .upload-section { background: #111; padding: 20px; border-radius: 15px; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; }
-        .btn-publish { background: linear-gradient(45deg, #ff4500, #ff8c00); color: #fff; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: 800; }
+        nav { position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #222; backdrop-filter: blur(10px); }
+        nav button { background: none; border: none; color: #555; font-size: 0.7rem; font-weight: bold; transition: 0.3s; }
+        nav button.active-btn { color: white; }
+        nav button.active-btn .dot { width: 5px; height: 5px; background: var(--primary); border-radius: 50%; margin: 5px auto 0; }
+
+        .btn-publish { background: linear-gradient(45deg, #ff4500, #ff8c00); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<header>LUVYX VIDEO</header>
+<header>
+    <div class="logo">LUVYX PRO</div>
+    <input type="text" id="searchBar" placeholder="Hledat video nebo autora..." oninput="filterVideos()">
+</header>
 
 <div id="videoPlayerOverlay">
-    <div class="close-player" onclick="closePlayer()">✕ ZAVŘÍT</div>
-    <div class="player-container" id="playerTarget"></div>
+    <div class="close-player" onclick="closePlayer()">✕</div>
+    <div id="playerTarget" class="player-container"></div>
 </div>
 
 <div id="home" class="page active">
-    <div class="section-title">TOP VIDEA</div>
-    <div id="topVideos" class="horizontal-scroll"></div>
+    <div id="loadingUI">
+        <div class="section-title">NAČÍTÁM...</div>
+        <div class="horizontal-scroll">
+            <div class="thumb-card skeleton" style="height:120px; width:150px;"></div>
+            <div class="thumb-card skeleton" style="height:120px; width:150px;"></div>
+        </div>
+    </div>
+    
+    <div id="contentUI" style="display:none;">
+        <div class="section-title">🔥 TRENDY VIDEA</div>
+        <div id="topVideos" class="horizontal-scroll"></div>
 
-    <div class="section-title">TOP SHORTS</div>
-    <div id="topShorts" class="horizontal-scroll"></div>
+        <div class="section-title">📱 SHORTS</div>
+        <div id="topShorts" class="horizontal-scroll"></div>
 
-    <div class="section-title">VŠECHNA VIDEA</div>
-    <div id="allVideos" class="video-list-full"></div>
+        <div class="section-title">📺 VŠECHNA VIDEA</div>
+        <div id="allVideos"></div>
+    </div>
 </div>
 
 <div id="mychannel" class="page">
@@ -71,67 +90,78 @@
 </div>
 
 <nav>
-    <button id="nav-home" class="active-btn" onclick="navigateTo('home')">Home</button>
-    <button id="nav-channel" onclick="navigateTo('mychannel')">Channel</button>
+    <button onclick="navigateTo('home')" id="btn-home" class="active-btn">HOME<div class="dot"></div></button>
+    <button onclick="navigateTo('mychannel')" id="btn-channel">CHANNEL<div class="dot"></div></button>
 </nav>
 
 <script>
-    // TVOJE SCRIPT URL
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz80OB0K3i8yTfEP1GMkX8ux_5qNHKq0JZz9NJEcdfQa4BV-LhYwlm06vRECpwQSfcf/exec";
+    let allData = [];
+    const VERIFIED_USERS = ["GOBLINEKKK", "ADMIN", "MATY"]; // Tady přidej jména s fajfkou
 
     function navigateTo(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-btn'));
         document.getElementById(pageId).classList.add('active');
-        if (pageId === 'home') fetchVideos();
-        if (pageId === 'mychannel') checkAuth();
+        document.getElementById('btn-' + (pageId==='home'?'home':'channel')).classList.add('active-btn');
+        if(pageId === 'home') fetchVideos();
+        if(pageId === 'mychannel') checkAuth();
     }
 
     async function fetchVideos() {
         try {
             const response = await fetch(SCRIPT_URL);
-            const data = await response.json();
-            const videos = data.slice().reverse();
-
-            const longVideos = videos.filter(v => !v[1].includes('/shorts/')).slice(0, 3);
-            const shortsVideos = videos.filter(v => v[1].includes('/shorts/')).slice(0, 3);
-
-            // Vykreslení Top Videí
-            document.getElementById('topVideos').innerHTML = longVideos.map(v => createThumb(v, false)).join('');
-            // Vykreslení Top Shorts
-            document.getElementById('topShorts').innerHTML = shortsVideos.map(v => createThumb(v, true)).join('');
-            // Vykreslení zbytku
-            document.getElementById('allVideos').innerHTML = videos.map(v => `
-                <div class="list-item" onclick="openPlayer('${v[1]}')">
-                    <img src="https://img.youtube.com/vi/${extractYouTubeId(v[1])}/mqdefault.jpg">
-                    <div>
-                        <div style="font-weight:bold;">${v[0]}</div>
-                        <div style="font-size:0.7rem; color:#ff4500;">@${v[2] || 'NEZNÁMÝ'}</div>
-                    </div>
-                </div>
-            `).join('');
-
-        } catch (e) { console.log(e); }
+            allData = await response.json();
+            renderContent(allData.slice().reverse());
+            document.getElementById('loadingUI').style.display = 'none';
+            document.getElementById('contentUI').style.display = 'block';
+        } catch (e) { console.error(e); }
     }
 
-    function createThumb(v, isShort) {
-        const id = extractYouTubeId(v[1]);
+    function renderContent(data) {
+        const topV = data.filter(v => !v[1].includes('/shorts/')).slice(0, 5);
+        const topS = data.filter(v => v[1].includes('/shorts/')).slice(0, 5);
+
+        document.getElementById('topVideos').innerHTML = topV.map(v => createCard(v, false)).join('');
+        document.getElementById('topShorts').innerHTML = topS.map(v => createCard(v, true)).join('');
+        
+        document.getElementById('allVideos').innerHTML = data.map(v => `
+            <div style="display:flex; gap:12px; margin-bottom:15px; background:#111; padding:10px; border-radius:10px;" onclick="openPlayer('${v[1]}')">
+                <img src="https://img.youtube.com/vi/${extractID(v[1])}/mqdefault.jpg" style="width:120px; border-radius:5px;">
+                <div style="overflow:hidden;">
+                    <div style="font-weight:bold; font-size:0.9rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${v[0]}</div>
+                    <div style="font-size:0.75rem; color:var(--primary); margin-top:5px;">
+                        @${(v[2]||'Neznámý').toUpperCase()} ${VERIFIED_USERS.includes(v[2]) ? ' <span class="verified-badge">✔</span>' : ''}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function createCard(v, isShort) {
+        const id = extractID(v[1]);
+        const user = (v[2] || 'Neznámý').toUpperCase();
         return `
             <div class="thumb-card ${isShort ? 'short-thumb' : ''}" onclick="openPlayer('${v[1]}')">
                 <img src="https://img.youtube.com/vi/${id}/mqdefault.jpg">
-                <div class="thumb-title">${v[0]}</div>
+                <div class="thumb-info">
+                    <div class="v-title">${v[0]}</div>
+                    <div style="color:var(--primary); font-size:0.7rem;">@${user} ${VERIFIED_USERS.includes(v[2]) ? '✔' : ''}</div>
+                </div>
             </div>`;
     }
 
+    function filterVideos() {
+        const query = document.getElementById('searchBar').value.toLowerCase();
+        const filtered = allData.filter(v => v[0].toLowerCase().includes(query) || (v[2] && v[2].toLowerCase().includes(query)));
+        renderContent(filtered.slice().reverse());
+    }
+
     function openPlayer(url) {
-        const id = extractYouTubeId(url);
+        const id = extractID(url);
         const isShort = url.includes('/shorts/');
-        const overlay = document.getElementById('videoPlayerOverlay');
-        const target = document.getElementById('playerTarget');
-        
-        target.innerHTML = `<iframe class="player-iframe ${isShort ? 'is-shorts' : ''}" 
-                            src="https://www.youtube.com/embed/${id}?autoplay=1" 
-                            allow="autoplay" allowfullscreen></iframe>`;
-        overlay.style.display = 'flex';
+        document.getElementById('playerTarget').innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" style="width:100%; height:${isShort?'80vh':'30vh'}; border:none;" allow="autoplay" allowfullscreen></iframe>`;
+        document.getElementById('videoPlayerOverlay').style.display = 'flex';
     }
 
     function closePlayer() {
@@ -143,32 +173,49 @@
         const container = document.getElementById('auth-container');
         const user = localStorage.getItem('luvyx_user');
         if (!user) {
-            container.innerHTML = `<div style="text-align:center; padding:50px 20px;"><h2>Vytvoř si kanál 🔥</h2><input type="text" id="userNameInput" placeholder="Tvé jméno..."><button class="btn-publish" onclick="saveUser()">ULOŽIT</button></div>`;
+            container.innerHTML = `
+                <div style="text-align:center; padding:40px 10px;">
+                    <div style="font-size:4rem; margin-bottom:20px;">🎭</div>
+                    <h2>Tvůj nový kanál</h2>
+                    <input type="text" id="nickInput" placeholder="Zadej svůj Nickname...">
+                    <button class="btn-publish" onclick="saveUser()">VYTVOŘIT PROFIL</button>
+                </div>`;
         } else {
-            container.innerHTML = `<div class="upload-section"><p>@${user}</p><input type="text" id="vidName" placeholder="Název..."><input type="text" id="vidUrl" placeholder="URL..."><button class="btn-publish" onclick="handleUpload()">PUBLIKOVAT</button></div>`;
+            container.innerHTML = `
+                <div style="background:#111; padding:20px; border-radius:15px; border:1px solid #222;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+                        <div class="avatar" style="background:var(--primary)">${user[0].toUpperCase()}</div>
+                        <div style="font-weight:bold;">@${user} ${VERIFIED_USERS.includes(user) ? '✔' : ''}</div>
+                    </div>
+                    <input type="text" id="vTitle" placeholder="Název videa...">
+                    <input type="text" id="vUrl" placeholder="YouTube URL (nebo Shorts)...">
+                    <button class="btn-publish" onclick="upload()">PUBLIKOVAT VIDEO</button>
+                    <p onclick="localStorage.clear(); location.reload();" style="text-align:center; color:#444; font-size:0.7rem; margin-top:20px;">ODHLÁSIT SE</p>
+                </div>`;
         }
     }
 
     function saveUser() {
-        const name = document.getElementById('userNameInput').value.trim();
-        if (name.length < 2) return;
-        localStorage.setItem('luvyx_user', name);
+        const nick = document.getElementById('nickInput').value.trim();
+        if (nick.length < 2) return;
+        localStorage.setItem('luvyx_user', nick);
         checkAuth();
     }
 
-    async function handleUpload() {
-        const title = document.getElementById('vidName').value;
-        const url = document.getElementById('vidUrl').value;
+    async function upload() {
+        const title = document.getElementById('vTitle').value;
+        const url = document.getElementById('vUrl').value;
         const author = localStorage.getItem('luvyx_user');
-        if (!title || !url) return;
+        if(!title || !url) return alert("Vyplň vše!");
+        document.querySelector('.btn-publish').innerText = "POSÍLÁM...";
         await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ title, url, author }) });
         navigateTo('home');
     }
 
-    function extractYouTubeId(url) {
-        const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/)|youtu\.be\/)([^"&?\/\s]{11})/;
-        const match = url.match(regex);
-        return match ? match[1] : null;
+    function extractID(url) {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length == 11) ? match[2] : null;
     }
 
     fetchVideos();
