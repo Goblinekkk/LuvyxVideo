@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luvyx Video 2.0</title>
+    <title>Luvyx Video 2.1</title>
     <style>
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background: #000; color: white; margin: 0; padding-bottom: 80px; 
+            background: #000; color: white; margin: 0; padding-bottom: 80px; overflow-x: hidden;
         }
         
         header { 
@@ -16,61 +16,58 @@
             position: sticky; top: 0; z-index: 100; color: #ff4500;
         }
 
+        /* STYLOVÁ NOTIFIKACE */
+        #notification-toast {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(45deg, #ff4500, #ff8c00);
+            color: white; padding: 15px 25px; border-radius: 30px;
+            z-index: 1000; font-weight: bold; font-size: 0.9rem;
+            box-shadow: 0 5px 20px rgba(255, 69, 0, 0.4);
+            transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; align-items: center; gap: 10px; min-width: 250px; justify-content: center;
+        }
+
         .page { display: none; padding: 10px; animation: fadeIn 0.3s; }
         .active { display: block; }
-
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .video-card { background: #000; margin-bottom: 25px; border-radius: 12px; overflow: hidden; }
         .video-wrapper { position: relative; width: 100%; padding-top: 56.25%; background: #111; }
-        /* Speciální úprava pro Shorts na výšku */
-        .is-shorts { padding-top: 177%; width: 70%; margin: 0 auto; }
-        
+        .is-shorts { padding-top: 177%; width: 75%; margin: 0 auto; border-radius: 15px; overflow: hidden; }
         iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
         
         .v-info { padding: 12px 5px; }
         .v-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; }
-        .v-author { font-size: 0.85rem; color: #ff4500; font-weight: bold; text-transform: uppercase; }
+        .v-author { font-size: 0.85rem; color: #ff4500; font-weight: bold; }
 
         nav { 
             position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.95); 
             display: flex; justify-content: space-around; padding: 15px 0; 
-            border-top: 1px solid #222; backdrop-filter: blur(10px);
+            border-top: 1px solid #222; backdrop-filter: blur(10px); z-index: 100;
         }
-
         nav button { background: none; border: none; color: #555; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
         nav button.active-btn { color: #fff; }
         nav button.active-btn::after { content: ''; display: block; width: 6px; height: 6px; background: #ff4500; border-radius: 50%; margin: 5px auto 0; }
 
         .upload-section { background: #111; padding: 20px; border-radius: 15px; border: 1px solid #222; }
-        input { 
-            width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; 
-            border: 1px solid #333; background: #000; color: white; box-sizing: border-box; 
-        }
-
-        .btn-publish { 
-            background: linear-gradient(45deg, #ff4500, #ff8c00); 
-            color: #fff; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: 800; cursor: pointer;
-        }
-
-        #login-screen { text-align: center; padding: 50px 20px; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; }
+        .btn-publish { background: linear-gradient(45deg, #ff4500, #ff8c00); color: #fff; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: 800; cursor: pointer; }
     </style>
 </head>
 <body>
+
+<div id="notification-toast">🚀 Novinka v aplikaci!</div>
 
 <header id="app-bar">LUVYX VIDEO</header>
 
 <div id="home" class="page active">
     <div id="videoContainer">
-        <p style="text-align:center; color:#555;">Načítám tvůj svět... 🔥</p>
+        <p style="text-align:center; color:#555;">Žhavíme servery... 🔥</p>
     </div>
 </div>
 
 <div id="mychannel" class="page">
-    <div id="auth-container">
-        </div>
-    
-    <div id="myVideosListContainer" style="margin-top:20px;"></div>
+    <div id="auth-container"></div>
 </div>
 
 <nav>
@@ -80,71 +77,42 @@
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwds11bGYMa6wZMYwOv7Q477rbdT7JfeF3RkSbMhP7Bb9Tg8KcGILen-ehTpBOTXrBB/exec";
-    
-    // Načtení jména z paměti telefonu
+    const APP_VERSION = "2.1"; // Změň tohle číslo pro vyvolání oznámení o aktualizaci
     let currentUser = localStorage.getItem('luvyx_user');
+    let lastSeenVideoCount = localStorage.getItem('last_video_count') || 0;
+
+    function showToast(text) {
+        const toast = document.getElementById('notification-toast');
+        toast.innerText = text;
+        toast.style.top = "20px";
+        setTimeout(() => { toast.style.top = "-100px"; }, 4000);
+    }
 
     function navigateTo(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
         document.getElementById('nav-home').classList.toggle('active-btn', pageId === 'home');
         document.getElementById('nav-channel').classList.toggle('active-btn', pageId === 'mychannel');
-        
         if (pageId === 'home') fetchVideos();
         if (pageId === 'mychannel') checkAuth();
     }
 
-    // --- PŘIHLÁŠENÍ (Ukládá se do prohlížeče) ---
-    function checkAuth() {
-        const container = document.getElementById('auth-container');
-        if (!currentUser) {
-            container.innerHTML = `
-                <div id="login-screen">
-                    <h2>Vítej v Luvyx! 🔥</h2>
-                    <p style="color:#888;">Vyber si jméno pro svůj kanál:</p>
-                    <input type="text" id="userNameInput" placeholder="Tvoje jméno...">
-                    <button class="btn-publish" onclick="saveUser()">VYTVOŘIT KANÁL</button>
-                </div>`;
-        } else {
-            container.innerHTML = `
-                <div class="upload-section">
-                    <p style="margin:0 0 10px 0; color:#ff4500; font-weight:bold;">Kanál: ${currentUser}</p>
-                    <input type="text" id="vidName" placeholder="Název videa...">
-                    <input type="text" id="vidUrl" placeholder="YouTube odkaz nebo Shorts...">
-                    <button class="btn-publish" onclick="handleUpload()">PUBLIKOVAT</button>
-                    <button onclick="logout()" style="background:none; border:none; color:#444; margin-top:15px; width:100%; font-size:0.7rem;">ODHLÁSIT SE</button>
-                </div>`;
-        }
-    }
-
-    function saveUser() {
-        const name = document.getElementById('userNameInput').value;
-        if (name.length < 2) return alert("Jméno je moc krátké!");
-        localStorage.setItem('luvyx_user', name);
-        currentUser = name;
-        checkAuth();
-    }
-
-    function logout() {
-        if(confirm("Opravdu se chceš odhlásit?")) {
-            localStorage.removeItem('luvyx_user');
-            currentUser = null;
-            checkAuth();
-        }
-    }
-
-    // --- NAČÍTÁNÍ VIDEÍ ---
     async function fetchVideos() {
         const container = document.getElementById('videoContainer');
         try {
             const response = await fetch(SCRIPT_URL);
             const data = await response.json();
             
+            // Kontrola nového videa
+            if (data.length > lastSeenVideoCount && lastSeenVideoCount != 0) {
+                showToast("🎬 Přibylo nové video!");
+            }
+            localStorage.setItem('last_video_count', data.length);
+
             container.innerHTML = data.slice().reverse().map(v => {
                 const vidId = extractYouTubeId(v[1]);
-                const isShorts = v[1].includes('/shorts/');
-                const author = v[2] || "Neznámý"; // Sloupec C
-
+                const isShorts = v[1].includes('/shorts/') || v[1].includes('youtube.com/shorts');
+                const author = v[2] || "Neznámý";
                 return `
                     <div class="video-card">
                         <div class="video-wrapper ${isShorts ? 'is-shorts' : ''}">
@@ -152,42 +120,67 @@
                         </div>
                         <div class="v-info">
                             <div class="v-title">${v[0]}</div>
-                            <div class="v-author">@${author}</div>
+                            <div class="v-author">@${author.toUpperCase()}</div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
-        } catch (e) {
-            container.innerHTML = '<p style="text-align:center;">Chyba při načítání dat.</p>';
+        } catch (e) { container.innerHTML = '<p>Chyba načítání.</p>'; }
+    }
+
+    // --- KONTROLA AKTUALIZACE ---
+    function checkUpdate() {
+        const lastVersion = localStorage.getItem('app_version');
+        if (lastVersion && lastVersion !== APP_VERSION) {
+            setTimeout(() => {
+                showToast("✨ Appka aktualizována na v" + APP_VERSION);
+            }, 1000);
+        }
+        localStorage.setItem('app_version', APP_VERSION);
+    }
+
+    function checkAuth() {
+        const container = document.getElementById('auth-container');
+        if (!currentUser) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:50px 20px;">
+                    <h2>Vytvoř si kanál 🔥</h2>
+                    <input type="text" id="userNameInput" placeholder="Tvé jméno...">
+                    <button class="btn-publish" onclick="saveUser()">POTVRDIT</button>
+                </div>`;
+        } else {
+            container.innerHTML = `
+                <div class="upload-section">
+                    <p style="color:#ff4500; font-weight:bold;">Vítej, ${currentUser}!</p>
+                    <input type="text" id="vidName" placeholder="Název videa...">
+                    <input type="text" id="vidUrl" placeholder="YouTube odkaz...">
+                    <button class="btn-publish" onclick="handleUpload()">PUBLIKOVAT</button>
+                </div>`;
         }
     }
 
-    // --- PUBLIKOVÁNÍ ---
+    function saveUser() {
+        const name = document.getElementById('userNameInput').value;
+        if (name.length < 2) return;
+        localStorage.setItem('luvyx_user', name);
+        currentUser = name;
+        checkAuth();
+    }
+
     async function handleUpload() {
         const title = document.getElementById('vidName').value;
         const url = document.getElementById('vidUrl').value;
         if (!title || !url) return alert("Vyplň vše!");
-
         const btn = document.querySelector('.btn-publish');
-        btn.innerText = "PUBLIKUJI...";
+        btn.innerText = "NAHRÁVÁM...";
         btn.disabled = true;
-
         try {
             await fetch(SCRIPT_URL, {
                 method: "POST",
-                body: JSON.stringify({ 
-                    title: title, 
-                    url: url, 
-                    author: currentUser // Posíláme jméno do sloupce C
-                })
+                body: JSON.stringify({ title, url, author: currentUser })
             });
             navigateTo('home');
-        } catch (e) {
-            alert("Chyba při odesílání.");
-        } finally {
-            btn.innerText = "PUBLIKOVAT";
-            btn.disabled = false;
-        }
+            showToast("✅ Video úspěšně přidáno!");
+        } catch (e) { alert("Chyba."); }
     }
 
     function extractYouTubeId(url) {
@@ -196,8 +189,9 @@
         return match ? match[1] : null;
     }
 
+    // Spuštění
+    checkUpdate();
     fetchVideos();
 </script>
-
 </body>
 </html>
