@@ -43,19 +43,19 @@
         nav button.active-btn { color: white; }
         nav button.active-btn::after { content: ''; display: block; width: 5px; height: 5px; background: var(--primary); border-radius: 50%; margin: 5px auto 0; }
 
-        /* LIST ITEMS (ALL VIDEOS) */
-        .list-item { display: flex; gap: 12px; margin-bottom: 15px; background: var(--card); padding: 10px; border-radius: 12px; align-items: center; position: relative; }
+        /* LIST ITEMS */
+        .list-item { display: flex; gap: 12px; margin-bottom: 15px; background: var(--card); padding: 10px; border-radius: 12px; align-items: center; }
         .list-item img { width: 110px; height: 65px; border-radius: 8px; object-fit: cover; }
         .list-info { flex-grow: 1; overflow: hidden; }
         
-        /* BADGES & ADMIN */
         .verified-badge { color: var(--verified); font-size: 0.8rem; margin-left: 3px; }
         .delete-btn { color: #ff3333; font-size: 1.3rem; padding: 5px 10px; cursor: pointer; }
 
-        /* UPLOAD SECTION */
+        /* FORMS */
         .upload-card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #222; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; outline: none; }
         .btn-publish { background: linear-gradient(45deg, #ff4500, #ff8c00); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-google { background: white; color: black; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
     </style>
 </head>
 <body>
@@ -74,17 +74,16 @@
     <div id="contentUI">
         <div class="section-title">🔥 TRENDY VIDEA</div>
         <div id="topVideos" class="horizontal-scroll"></div>
-
         <div class="section-title">📱 SHORTS</div>
         <div id="topShorts" class="horizontal-scroll"></div>
-
         <div class="section-title">📺 VŠECHNA VIDEA</div>
         <div id="allVideos"></div>
     </div>
 </div>
 
 <div id="mychannel" class="page">
-    <div id="auth-container"></div>
+    <div id="auth-container">
+        </div>
 </div>
 
 <nav>
@@ -92,68 +91,139 @@
     <button onclick="navigateTo('mychannel')" id="btn-channel">CHANNEL</button>
 </nav>
 
-<script>
-    // KONFIGURACE
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqHXenN38GxR5BzGADtzYcf9F3dHf6Z35-v9cNnFFMhT6WXie6qIyqSjqifrtqmo9r/exec";
-    const VERIFIED_USERS = ["GOBLINEKKK", "ADMIN", "MATY", "Maty BS", "Test", "TEST", "TORTILA 1"]; // Seznam adminů s fajfkou a možností mazat
-    let allData = [];
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-    // NAVIGACE MEZI STRÁNKAMI
-    function navigateTo(pageId) {
+    const firebaseConfig = {
+        apiKey: "AIzaSyBDTuuUwQK6aJO5nhav5TVXwDHbofO-V5k",
+        authDomain: "luvyx-video.firebaseapp.com",
+        projectId: "luvyx-video",
+        storageBucket: "luvyx-video.firebasestorage.app",
+        messagingSenderId: "425242203551",
+        appId: "1:425242203551:web:3925db883b41c26af759aa",
+        measurementId: "G-X529XNY942"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqHXenN38GxR5BzGADtzYcf9F3dHf6Z35-v9cNnFFMhT6WXie6qIyqSjqifrtqmo9r/exec";
+    const VERIFIED_USERS = ["GOBLINEKKK", "ADMIN", "MATY", "Maty BS", "Tortila 1"]; 
+    let allData = [];
+    let currentUser = null;
+
+    // SLEDOVÁNÍ STAVU PŘIHLÁŠENÍ
+    onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        if (document.getElementById('mychannel').classList.contains('active')) {
+            renderAuthPage();
+        }
+    });
+
+    // PŘIHLÁŠENÍ / REGISTRACE FUNKCE
+    window.handleSignUp = async () => {
+        const email = document.getElementById('emailInput').value;
+        const pass = document.getElementById('passInput').value;
+        try {
+            await createUserWithEmailAndPassword(auth, email, pass);
+            alert("Účet vytvořen!");
+        } catch (e) { alert("Chyba: " + e.message); }
+    };
+
+    window.handleLogin = async () => {
+        const email = document.getElementById('emailInput').value;
+        const pass = document.getElementById('passInput').value;
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (e) { alert("Chyba: " + e.message); }
+    };
+
+    window.handleGoogle = async () => {
+        try { await signInWithPopup(auth, googleProvider); } 
+        catch (e) { alert("Chyba Google přihlášení."); }
+    };
+
+    window.handleLogout = () => signOut(auth);
+
+    // RENDER STRÁNKY CHANNEL
+    function renderAuthPage() {
+        const container = document.getElementById('auth-container');
+        if (!currentUser) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:30px 10px;">
+                    <div style="font-size:3rem; margin-bottom:10px;">👋</div>
+                    <h2>Vítej v Luvyxu</h2>
+                    <input type="email" id="emailInput" placeholder="E-mail">
+                    <input type="password" id="passInput" placeholder="Heslo">
+                    <button class="btn-publish" onclick="handleLogin()">PŘIHLÁSIT SE</button>
+                    <button class="btn-publish" style="background:#222;" onclick="handleSignUp()">REGISTROVAT</button>
+                    <button class="btn-google" onclick="handleGoogle()">
+                        <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="20"> Přihlásit se přes Google
+                    </button>
+                </div>`;
+        } else {
+            const name = currentUser.displayName || currentUser.email.split('@')[0];
+            const isVerified = VERIFIED_USERS.includes(name.toUpperCase());
+            container.innerHTML = `
+                <div class="upload-card">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+                        <img src="${currentUser.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" style="width:50px; height:50px; border-radius:50%;">
+                        <div>
+                            <div style="font-weight:bold;">@${name.toUpperCase()} ${isVerified ? '<span class="verified-badge">✔</span>' : ''}</div>
+                            <div style="font-size:0.7rem; color:#666;">${currentUser.email}</div>
+                        </div>
+                    </div>
+                    <input type="text" id="vTitle" placeholder="Název videa...">
+                    <input type="text" id="vUrl" placeholder="YouTube URL">
+                    <button class="btn-publish" id="pubBtn" onclick="upload()">PUBLIKOVAT</button>
+                    <p onclick="handleLogout()" style="text-align:center; color:#555; cursor:pointer; margin-top:20px;">Odhlásit se</p>
+                </div>`;
+        }
+    }
+
+    // GLOBÁLNÍ FUNKCE PRO HTML
+    window.navigateTo = (pageId) => {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-btn'));
         document.getElementById(pageId).classList.add('active');
         document.getElementById('btn-' + (pageId === 'home' ? 'home' : 'channel')).classList.add('active-btn');
         if (pageId === 'home') fetchVideos();
-        if (pageId === 'mychannel') checkAuth();
-    }
+        if (pageId === 'mychannel') renderAuthPage();
+    };
 
-    // NAČTENÍ DAT Z TABULKY
-    async function fetchVideos() {
+    window.fetchVideos = async () => {
         try {
-            const response = await fetch(SCRIPT_URL);
-            allData = await response.json();
+            const r = await fetch(SCRIPT_URL);
+            allData = await r.json();
             renderContent(allData.slice().reverse());
-        } catch (e) { console.error("Chyba při načítání:", e); }
-    }
+        } catch (e) { console.log("Chyba načítání"); }
+    };
 
-    // VYKRESLENÍ OBSAHU
     function renderContent(data) {
-        const currentUser = localStorage.getItem('luvyx_user');
-        const isAdmin = VERIFIED_USERS.includes(currentUser);
-
-        // Filtrujeme pouze videa, která nejsou smazaná (Sloupec D / index 3)
         const activeVideos = data.filter(v => v[3] !== "DELETED");
+        const longs = activeVideos.filter(v => !v[1].includes('/shorts/')).slice(0, 5);
+        const shorts = activeVideos.filter(v => v[1].includes('/shorts/')).slice(0, 8);
 
-        const longVideos = activeVideos.filter(v => !v[1].includes('/shorts/')).slice(0, 5);
-        const shortsVideos = activeVideos.filter(v => v[1].includes('/shorts/')).slice(0, 5);
-
-        // Trendy (Horizontální)
-        document.getElementById('topVideos').innerHTML = longVideos.map(v => createCard(v, false)).join('');
-        document.getElementById('topShorts').innerHTML = shortsVideos.map(v => createCard(v, true)).join('');
-        
-        // Seznam (Vertikální)
+        document.getElementById('topVideos').innerHTML = longs.map(v => createCard(v, false)).join('');
+        document.getElementById('topShorts').innerHTML = shorts.map(v => createCard(v, true)).join('');
         document.getElementById('allVideos').innerHTML = activeVideos.map(v => {
             const id = extractID(v[1]);
-            const author = (v[2] || 'Neznámý');
-            const isVerified = VERIFIED_USERS.includes(author);
-
+            const author = v[2] || 'Host';
+            const isAdmin = currentUser && VERIFIED_USERS.includes((currentUser.displayName || "").toUpperCase());
             return `
                 <div class="list-item">
                     <img src="https://img.youtube.com/vi/${id}/mqdefault.jpg" onclick="openPlayer('${v[1]}')">
                     <div class="list-info" onclick="openPlayer('${v[1]}')">
-                        <div style="font-weight:bold; font-size:0.95rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${v[0]}</div>
-                        <div style="font-size:0.75rem; color:#888; margin-top:4px;">
-                            @${author.toUpperCase()} ${isVerified ? '<span class="verified-badge">✔</span>' : ''}
-                        </div>
+                        <div style="font-weight:bold; font-size:0.9rem;">${v[0]}</div>
+                        <div style="font-size:0.7rem; color:#666;">@${author.toUpperCase()}</div>
                     </div>
                     ${isAdmin ? `<div class="delete-btn" onclick="deleteVideo('${v[1]}')">🗑️</div>` : ''}
-                </div>
-            `;
+                </div>`;
         }).join('');
     }
 
-    // POMOCNÁ FUNKCE PRO KARTY
     function createCard(v, isShort) {
         const id = extractID(v[1]);
         return `
@@ -166,124 +236,39 @@
             </div>`;
     }
 
-    // VYHLEDÁVÁNÍ
-    function filterVideos() {
-        const query = document.getElementById('searchBar').value.toLowerCase();
-        const filtered = allData.filter(v => 
-            v[3] !== "DELETED" && 
-            (v[0].toLowerCase().includes(query) || (v[2] && v[2].toLowerCase().includes(query)))
-        );
-        renderContent(filtered.slice().reverse());
-    }
-
-    // MAZÁNÍ VIDEA (ADMIN POUZE)
-    async function deleteVideo(url) {
-        if (!confirm("Opravdu chceš smazat toto video z Luvyxu?")) return;
+    window.upload = async () => {
+        const title = document.getElementById('vTitle').value;
+        const url = document.getElementById('vUrl').value;
+        const author = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : "Host";
+        if(!title || !url) return alert("Vyplň vše!");
+        
+        document.getElementById('pubBtn').innerText = "PUBLIKUJI...";
         try {
-            await fetch(SCRIPT_URL, { 
-                method: "POST", 
-                body: JSON.stringify({ action: "delete", url: url }) 
-            });
-            alert("Smazáno!");
-            fetchVideos();
-        } catch (e) { alert("Chyba při mazání."); }
-    }
+            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ title, url, author }) });
+            navigateTo('home');
+        } catch (e) { alert("Chyba spojení."); }
+    };
 
-    // OTEVŘENÍ PŘEHRÁVAČE
-    function openPlayer(url) {
+    window.openPlayer = (url) => {
         const id = extractID(url);
         const isShort = url.includes('/shorts/');
-        const target = document.getElementById('playerTarget');
-        
-        target.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" 
-                            style="width:100%; height:${isShort ? '80vh' : '35vh'}; border:none;" 
-                            allow="autoplay; fullscreen"></iframe>`;
+        document.getElementById('playerTarget').innerHTML = `
+            <iframe src="https://www.youtube.com/embed/${id}?autoplay=1" 
+            style="width:100%; height:${isShort ? '80vh' : '35vh'}; border:none;" allowfullscreen></iframe>`;
         document.getElementById('videoPlayerOverlay').style.display = 'flex';
-    }
+    };
 
-    function closePlayer() {
+    window.closePlayer = () => {
         document.getElementById('videoPlayerOverlay').style.display = 'none';
         document.getElementById('playerTarget').innerHTML = '';
-    }
+    };
 
-    // SPRÁVA KANÁLU (AUTH)
-    function checkAuth() {
-        const container = document.getElementById('auth-container');
-        const user = localStorage.getItem('luvyx_user');
-        
-        if (!user) {
-            container.innerHTML = `
-                <div style="text-align:center; padding:50px 10px;">
-                    <div style="font-size:4rem; margin-bottom:10px;">🚀</div>
-                    <h2>Vytvoř si profil</h2>
-                    <p style="color:#666;">Zadej jméno, pod kterým tě uvidí ostatní.</p>
-                    <input type="text" id="nickInput" placeholder="Tvé jméno...">
-                    <button class="btn-publish" onclick="saveUser()">ZAČÍT POUŽÍVAT</button>
-                </div>`;
-        } else {
-            const isVerified = VERIFIED_USERS.includes(user);
-            container.innerHTML = `
-                <div class="upload-card">
-                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
-                        <div style="width:40px; height:40px; background:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">${user[0].toUpperCase()}</div>
-                        <div>
-                            <div style="font-weight:bold;">@${user} ${isVerified ? '<span class="verified-badge">✔</span>' : ''}</div>
-                            <div style="font-size:0.7rem; color:#666;">Můj Luvyx Kanál</div>
-                        </div>
-                    </div>
-                    <input type="text" id="vTitle" placeholder="Název videa...">
-                    <input type="text" id="vUrl" placeholder="YouTube URL (např. https://...)">
-                    <button class="btn-publish" id="pubBtn" onclick="upload()">PUBLIKOVAT</button>
-                    <p onclick="logout()" style="text-align:center; color:#444; font-size:0.75rem; margin-top:25px; cursor:pointer;">ODHLÁSIT SE</p>
-                </div>`;
-        }
-    }
-
-    function saveUser() {
-        const nick = document.getElementById('nickInput').value.trim();
-        if (nick.length < 2) return alert("Jméno je moc krátké!");
-        localStorage.setItem('luvyx_user', nick);
-        checkAuth();
-    }
-
-    function logout() {
-        localStorage.removeItem('luvyx_user');
-        location.reload();
-    }
-
-    async function upload() {
-        const title = document.getElementById('vTitle').value.trim();
-        const url = document.getElementById('vUrl').value.trim();
-        const author = localStorage.getItem('luvyx_user');
-        
-        if (!title || !url) return alert("Vyplň název i odkaz!");
-        
-        const btn = document.getElementById('pubBtn');
-        btn.innerText = "NAHRÁVÁM...";
-        btn.disabled = true;
-
-        try {
-            await fetch(SCRIPT_URL, { 
-                method: "POST", 
-                body: JSON.stringify({ title, url, author }) 
-            });
-            navigateTo('home');
-        } catch (e) { 
-            alert("Chyba spojení."); 
-            btn.innerText = "PUBLIKOVAT";
-            btn.disabled = false;
-        }
-    }
-
-    // EXTRAKCE ID Z YOUTUBE URL
     function extractID(url) {
-        if (!url) return "";
         const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
         const match = url.match(regExp);
         return (match && match[2].length == 11) ? match[2] : null;
     }
 
-    // PRVNÍ NAČTENÍ
     fetchVideos();
 </script>
 </body>
