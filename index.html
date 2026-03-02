@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luvyx Video Pro</title>
+    <title>Luvyx Video 3.0</title>
     <style>
         :root { --primary: #ff4500; --bg: #000; --card: #111; --verified: #00bfff; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 80px; overflow-x: hidden; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 100px; overflow-x: hidden; }
         
         /* HEADER & SEARCH */
         header { padding: 15px; background: var(--bg); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #222; }
         .logo { text-align: center; font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-bottom: 10px; letter-spacing: 2px; }
         #searchBar { width: 100%; padding: 10px 15px; border-radius: 20px; border: none; background: #222; color: white; box-sizing: border-box; outline: none; font-size: 0.9rem; }
+
+        /* APK DOWNLOAD BOX */
+        .apk-box { background: linear-gradient(90deg, #1a1a1a, #222); margin: 10px; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #333; }
+        .apk-text { font-size: 0.8rem; font-weight: bold; }
+        .apk-btn { background: var(--primary); color: white; text-decoration: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; }
 
         .page { display: none; padding: 10px; }
         .active { display: block; animation: fadeIn 0.3s; }
@@ -24,7 +29,6 @@
         
         /* CARDS */
         .thumb-card { min-width: 150px; border-radius: 12px; overflow: hidden; background: var(--card); position: relative; transition: 0.2s; }
-        .thumb-card:active { transform: scale(0.96); }
         .thumb-card img { width: 100%; height: 85px; object-fit: cover; }
         .short-thumb { min-width: 110px; }
         .short-thumb img { height: 180px; }
@@ -39,21 +43,19 @@
 
         /* NAVIGATION */
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #222; backdrop-filter: blur(10px); z-index: 100; }
-        nav button { background: none; border: none; color: #555; font-size: 0.7rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        nav button { background: none; border: none; color: #555; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
         nav button.active-btn { color: white; }
-        nav button.active-btn::after { content: ''; display: block; width: 5px; height: 5px; background: var(--primary); border-radius: 50%; margin: 5px auto 0; }
 
         /* LIST ITEMS */
         .list-item { display: flex; gap: 12px; margin-bottom: 15px; background: var(--card); padding: 10px; border-radius: 12px; align-items: center; }
         .list-item img { width: 110px; height: 65px; border-radius: 8px; object-fit: cover; }
         .list-info { flex-grow: 1; overflow: hidden; }
-        
         .verified-badge { color: var(--verified); font-size: 0.8rem; margin-left: 3px; }
         .delete-btn { color: #ff3333; font-size: 1.3rem; padding: 5px 10px; cursor: pointer; }
 
         /* FORMS */
         .upload-card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #222; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; outline: none; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; }
         .btn-publish { background: linear-gradient(45deg, #ff4500, #ff8c00); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-google { background: white; color: black; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
     </style>
@@ -61,9 +63,14 @@
 <body>
 
 <header>
-    <div class="logo">LUVYX PRO</div>
+    <div class="logo">LUVYX VIDEO 3.0</div>
     <input type="text" id="searchBar" placeholder="Hledat video nebo autora..." oninput="filterVideos()">
 </header>
+
+<div class="apk-box">
+    <div class="apk-text">📱 Stáhni si Luvyx jako aplikaci (APK)</div>
+    <a href="https://median.co/share/nmdlrnj#apk" class="apk-btn" target="_blank">STÁHNOUT</a>
+</div>
 
 <div id="videoPlayerOverlay">
     <div class="close-player" onclick="closePlayer()">✕ ZAVŘÍT</div>
@@ -82,8 +89,7 @@
 </div>
 
 <div id="mychannel" class="page">
-    <div id="auth-container">
-        </div>
+    <div id="auth-container"></div>
 </div>
 
 <nav>
@@ -101,8 +107,7 @@
         projectId: "luvyx-video",
         storageBucket: "luvyx-video.firebasestorage.app",
         messagingSenderId: "425242203551",
-        appId: "1:425242203551:web:3925db883b41c26af759aa",
-        measurementId: "G-X529XNY942"
+        appId: "1:425242203551:web:3925db883b41c26af759aa"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -110,114 +115,97 @@
     const googleProvider = new GoogleAuthProvider();
 
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqHXenN38GxR5BzGADtzYcf9F3dHf6Z35-v9cNnFFMhT6WXie6qIyqSjqifrtqmo9r/exec";
-    const VERIFIED_USERS = ["GOBLINEKKK", "ADMIN", "MATY", "Maty BS", "Tortila 1"]; 
+    
+    // SEZNAM OVĚŘENÝCH UŽIVATELŮ
+    const VERIFIED_USERS = ["MATY YT", "TORTILA 1", "TEST", "TEST CHANNEL", "BABIRENI", "GOBLINEKKK", "ADMIN"]; 
+    
     let allData = [];
     let currentUser = null;
 
-    // SLEDOVÁNÍ STAVU PŘIHLÁŠENÍ
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
-        if (document.getElementById('mychannel').classList.contains('active')) {
-            renderAuthPage();
-        }
+        if (document.getElementById('mychannel').classList.contains('active')) renderAuthPage();
+        fetchVideos();
     });
 
-    // PŘIHLÁŠENÍ / REGISTRACE FUNKCE
+    // PŘIHLÁŠENÍ LOGIKA
     window.handleSignUp = async () => {
-        const email = document.getElementById('emailInput').value;
-        const pass = document.getElementById('passInput').value;
-        try {
-            await createUserWithEmailAndPassword(auth, email, pass);
-            alert("Účet vytvořen!");
-        } catch (e) { alert("Chyba: " + e.message); }
+        const e = document.getElementById('emailInput').value;
+        const p = document.getElementById('passInput').value;
+        try { await createUserWithEmailAndPassword(auth, e, p); alert("Účet vytvořen!"); } catch (err) { alert(err.message); }
     };
-
     window.handleLogin = async () => {
-        const email = document.getElementById('emailInput').value;
-        const pass = document.getElementById('passInput').value;
-        try {
-            await signInWithEmailAndPassword(auth, email, pass);
-        } catch (e) { alert("Chyba: " + e.message); }
+        const e = document.getElementById('emailInput').value;
+        const p = document.getElementById('passInput').value;
+        try { await signInWithEmailAndPassword(auth, e, p); } catch (err) { alert(err.message); }
     };
+    window.handleGoogle = async () => { try { await signInWithPopup(auth, googleProvider); } catch (e) { alert("Chyba Google."); } };
+    window.handleLogout = () => { signOut(auth); location.reload(); };
 
-    window.handleGoogle = async () => {
-        try { await signInWithPopup(auth, googleProvider); } 
-        catch (e) { alert("Chyba Google přihlášení."); }
-    };
-
-    window.handleLogout = () => signOut(auth);
-
-    // RENDER STRÁNKY CHANNEL
-    function renderAuthPage() {
-        const container = document.getElementById('auth-container');
-        if (!currentUser) {
-            container.innerHTML = `
-                <div style="text-align:center; padding:30px 10px;">
-                    <div style="font-size:3rem; margin-bottom:10px;">👋</div>
-                    <h2>Vítej v Luvyxu</h2>
-                    <input type="email" id="emailInput" placeholder="E-mail">
-                    <input type="password" id="passInput" placeholder="Heslo">
-                    <button class="btn-publish" onclick="handleLogin()">PŘIHLÁSIT SE</button>
-                    <button class="btn-publish" style="background:#222;" onclick="handleSignUp()">REGISTROVAT</button>
-                    <button class="btn-google" onclick="handleGoogle()">
-                        <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="20"> Přihlásit se přes Google
-                    </button>
-                </div>`;
-        } else {
-            const name = currentUser.displayName || currentUser.email.split('@')[0];
-            const isVerified = VERIFIED_USERS.includes(name.toUpperCase());
-            container.innerHTML = `
-                <div class="upload-card">
-                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
-                        <img src="${currentUser.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" style="width:50px; height:50px; border-radius:50%;">
-                        <div>
-                            <div style="font-weight:bold;">@${name.toUpperCase()} ${isVerified ? '<span class="verified-badge">✔</span>' : ''}</div>
-                            <div style="font-size:0.7rem; color:#666;">${currentUser.email}</div>
-                        </div>
-                    </div>
-                    <input type="text" id="vTitle" placeholder="Název videa...">
-                    <input type="text" id="vUrl" placeholder="YouTube URL">
-                    <button class="btn-publish" id="pubBtn" onclick="upload()">PUBLIKOVAT</button>
-                    <p onclick="handleLogout()" style="text-align:center; color:#555; cursor:pointer; margin-top:20px;">Odhlásit se</p>
-                </div>`;
-        }
-    }
-
-    // GLOBÁLNÍ FUNKCE PRO HTML
+    // NAVIGACE
     window.navigateTo = (pageId) => {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-btn'));
         document.getElementById(pageId).classList.add('active');
         document.getElementById('btn-' + (pageId === 'home' ? 'home' : 'channel')).classList.add('active-btn');
-        if (pageId === 'home') fetchVideos();
         if (pageId === 'mychannel') renderAuthPage();
     };
+
+    function renderAuthPage() {
+        const container = document.getElementById('auth-container');
+        if (!currentUser) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:20px;">
+                    <h2>Přihlášení</h2>
+                    <input type="email" id="emailInput" placeholder="E-mail">
+                    <input type="password" id="passInput" placeholder="Heslo">
+                    <button class="btn-publish" onclick="handleLogin()">PŘIHLÁSIT SE</button>
+                    <button class="btn-publish" style="background:#222;" onclick="handleSignUp()">REGISTROVAT</button>
+                    <button class="btn-google" onclick="handleGoogle()">Google</button>
+                </div>`;
+        } else {
+            const name = (currentUser.displayName || currentUser.email.split('@')[0]).toUpperCase();
+            const isVerified = VERIFIED_USERS.includes(name);
+            container.innerHTML = `
+                <div class="upload-card">
+                    <div style="font-weight:bold; margin-bottom:15px;">@${name} ${isVerified ? '<span class="verified-badge">✔</span>' : ''}</div>
+                    <input type="text" id="vTitle" placeholder="Název videa...">
+                    <input type="text" id="vUrl" placeholder="YouTube URL...">
+                    <button class="btn-publish" id="pubBtn" onclick="upload()">PUBLIKOVAT VIDEO</button>
+                    <p onclick="handleLogout()" style="text-align:center; cursor:pointer; font-size:0.8rem; color:#555; margin-top:20px;">Odhlásit se</p>
+                </div>`;
+        }
+    }
 
     window.fetchVideos = async () => {
         try {
             const r = await fetch(SCRIPT_URL);
             allData = await r.json();
             renderContent(allData.slice().reverse());
-        } catch (e) { console.log("Chyba načítání"); }
+        } catch (e) { console.log("Chyba dat"); }
     };
 
     function renderContent(data) {
-        const activeVideos = data.filter(v => v[3] !== "DELETED");
-        const longs = activeVideos.filter(v => !v[1].includes('/shorts/')).slice(0, 5);
-        const shorts = activeVideos.filter(v => v[1].includes('/shorts/')).slice(0, 8);
+        const active = data.filter(v => v[3] !== "DELETED");
+        const longs = active.filter(v => !v[1].includes('/shorts/')).slice(0, 6);
+        const shorts = active.filter(v => v[1].includes('/shorts/')).slice(0, 8);
 
         document.getElementById('topVideos').innerHTML = longs.map(v => createCard(v, false)).join('');
         document.getElementById('topShorts').innerHTML = shorts.map(v => createCard(v, true)).join('');
-        document.getElementById('allVideos').innerHTML = activeVideos.map(v => {
+        
+        document.getElementById('allVideos').innerHTML = active.map(v => {
             const id = extractID(v[1]);
-            const author = v[2] || 'Host';
-            const isAdmin = currentUser && VERIFIED_USERS.includes((currentUser.displayName || "").toUpperCase());
+            const author = (v[2] || 'Host').toUpperCase();
+            const isVerified = VERIFIED_USERS.includes(author);
+            const currentName = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]).toUpperCase() : "";
+            const isAdmin = VERIFIED_USERS.includes(currentName);
+
             return `
                 <div class="list-item">
                     <img src="https://img.youtube.com/vi/${id}/mqdefault.jpg" onclick="openPlayer('${v[1]}')">
                     <div class="list-info" onclick="openPlayer('${v[1]}')">
                         <div style="font-weight:bold; font-size:0.9rem;">${v[0]}</div>
-                        <div style="font-size:0.7rem; color:#666;">@${author.toUpperCase()}</div>
+                        <div style="font-size:0.7rem; color:#666;">@${author} ${isVerified ? '<span class="verified-badge">✔</span>' : ''}</div>
                     </div>
                     ${isAdmin ? `<div class="delete-btn" onclick="deleteVideo('${v[1]}')">🗑️</div>` : ''}
                 </div>`;
@@ -237,31 +225,29 @@
     }
 
     window.upload = async () => {
-        const title = document.getElementById('vTitle').value;
-        const url = document.getElementById('vUrl').value;
-        const author = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : "Host";
-        if(!title || !url) return alert("Vyplň vše!");
-        
+        const t = document.getElementById('vTitle').value;
+        const u = document.getElementById('vUrl').value;
+        const a = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : "Host";
+        if(!t || !u) return alert("Vyplň vše!");
         document.getElementById('pubBtn').innerText = "PUBLIKUJI...";
-        try {
-            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ title, url, author }) });
-            navigateTo('home');
-        } catch (e) { alert("Chyba spojení."); }
+        await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ title: t, url: u, author: a }) });
+        location.reload();
+    };
+
+    window.deleteVideo = async (url) => {
+        if(!confirm("Smazat video?")) return;
+        await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "delete", url: url }) });
+        fetchVideos();
     };
 
     window.openPlayer = (url) => {
         const id = extractID(url);
         const isShort = url.includes('/shorts/');
-        document.getElementById('playerTarget').innerHTML = `
-            <iframe src="https://www.youtube.com/embed/${id}?autoplay=1" 
-            style="width:100%; height:${isShort ? '80vh' : '35vh'}; border:none;" allowfullscreen></iframe>`;
+        document.getElementById('playerTarget').innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" style="width:100%; height:${isShort ? '80vh' : '35vh'}; border:none;" allowfullscreen allow="autoplay"></iframe>`;
         document.getElementById('videoPlayerOverlay').style.display = 'flex';
     };
 
-    window.closePlayer = () => {
-        document.getElementById('videoPlayerOverlay').style.display = 'none';
-        document.getElementById('playerTarget').innerHTML = '';
-    };
+    window.closePlayer = () => { document.getElementById('videoPlayerOverlay').style.display = 'none'; document.getElementById('playerTarget').innerHTML = ''; };
 
     function extractID(url) {
         const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
@@ -269,7 +255,11 @@
         return (match && match[2].length == 11) ? match[2] : null;
     }
 
-    fetchVideos();
+    window.filterVideos = () => {
+        const q = document.getElementById('searchBar').value.toUpperCase();
+        const filtered = allData.filter(v => v[3] !== "DELETED" && (v[0].toUpperCase().includes(q) || (v[2] && v[2].toUpperCase().includes(q))));
+        renderContent(filtered.slice().reverse());
+    };
 </script>
 </body>
 </html>
